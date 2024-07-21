@@ -1,6 +1,8 @@
 # MicroPython Console
 A customized handheld computer based on micropython & raspberry pi pico.
 
+Bad Apple Demo Data is here: https://github.com/fiefdx/badapple-demo-for-pico
+
 # Hardware Specs:
 ```
 raspberry pi pico w @ 240mhz
