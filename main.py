@@ -133,6 +133,46 @@ def display(task, name, display_cs = None, sd_cs = None, spi = None):
                         lcd.rect(x, y, brick_size, brick_size, 0)
                     elif data[h][w] == "x":
                         lcd.rect(x, y, brick_size, brick_size, 1)
+        if "binary" in msg.content:
+            refresh = True
+            data = msg.content["binary"]
+            width, height = msg.content["width"], msg.content["height"]
+            offset_x, offset_y = msg.content["x"], msg.content["y"]
+            invert_color = msg.content["invert"]
+            for y in range(height):
+                i = 0
+                continue_255 = None
+                continue_0 = None
+                continue_8 = None
+                x = 0
+                while x < width:
+                    b = 7 - (x % 8)
+                    if continue_255 is None and data[y][i] == 255:
+                        continue_255 = data[y][i+1] * 8
+                        lcd.line(x + offset_x, y + offset_y, x + offset_x + continue_255, y + offset_y, 0 if invert_color else 1)
+                        x += continue_255
+                        i += 2
+                        continue_255 = None
+                    elif continue_0 is None and data[y][i] == 0:
+                        continue_0 = data[y][i+1] * 8
+                        lcd.line(x + offset_x, y + offset_y, x + offset_x + continue_0, y + offset_y, 1 if invert_color else 0)
+                        x += continue_0
+                        i += 2
+                        continue_0 = None
+                    else:
+                        d = data[y][i]
+                        if continue_8 is None:
+                            continue_8 = 8
+                        if continue_8 is not None and continue_8 > 0:
+                            continue_8 -= 1
+                            if continue_8 == 0:
+                                continue_8 = None
+                                i += 1
+                        c = (d >> b) & 1
+                        if invert_color:
+                            c ^= 1
+                        lcd.pixel(x + offset_x, y + offset_y, c)
+                        x += 1
         if refresh:
             lcd.show()
             
