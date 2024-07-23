@@ -371,5 +371,5 @@ if __name__ == "__main__":
         s.run()
     except Exception as e:
         import sys
-        self.log("main exit: %s" % sys.print_exception(e))
+        print("main exit: %s" % sys.print_exception(e))
     print("core0 exit")
