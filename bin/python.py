@@ -6,6 +6,7 @@ from io import StringIO
 
 from shell import Shell
 from scheduler import Condition, Message
+from common import exists, path_join, isfile, isdir, path_split
 
 class PyShell(Shell):
     def __init__(self, display_size = (19, 9), cache_size = (-1, 30), history_length = 50, prompt_c = ">>>", scheduler = None, display_id = None, storage_id = None, history_file_path = "/.python_history"):
@@ -151,15 +152,18 @@ def main(*args, **kwargs):
         if len(kwargs["args"]) > 0:
             file_path = kwargs["args"][0]
             result = []
-            with open(file_path, "r") as fp:
-                content = fp.read()
-                s = PyShell(display_size = (18, 9))
-                result = s.exec_script(content, args = kwargs["args"][1:])
-            shell.disable_output = False
-            shell.current_shell = None
-            yield Condition(sleep = 0, wait_msg = False, send_msgs = [
-                Message({"output": result}, receiver = shell_id)
-            ])
+            if exists(file_path):
+                with open(file_path, "r") as fp:
+                    content = fp.read()
+                    s = PyShell(display_size = (18, 9))
+                    result = s.exec_script(content, args = kwargs["args"][1:])
+                shell.disable_output = False
+                shell.current_shell = None
+                yield Condition(sleep = 0, wait_msg = False, send_msgs = [
+                    Message({"output": result}, receiver = shell_id)
+                ])
+            else:
+                raise Exception("file[%s] not exists!" % file_path)
         else:
             s = PyShell(display_size = (18, 9))
             shell.current_shell = s
@@ -187,6 +191,7 @@ def main(*args, **kwargs):
             ])
     except Exception as e:
         shell.disable_output = False
+        shell.current_shell = None
         yield Condition(sleep = 0, send_msgs = [
-            Message({"output": sys.print_exception(e)}, receiver = shell_id)
+            Message({"output": str(e)}, receiver = shell_id)
         ])
