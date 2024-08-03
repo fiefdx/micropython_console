@@ -33,13 +33,15 @@ class EditShell(object):
             f.close()
         self.file = open(self.file_path, "r")
         self.load_and_calc_total_lines()
-        self.status = ""
+        self.status = "saved"
+        self.exit_count = 0
         
     def input_char(self, c):
         if len(self.cache) == 0:
             self.cache.append("")
         if c == "\n":
             self.status = "changed"
+            self.exit_count = 0
             before_enter = self.cache[self.cursor_row][:self.cursor_col + self.offset_col]
             after_enter = self.cache[self.cursor_row][self.cursor_col + self.offset_col:]
             self.cache[self.cursor_row] = before_enter
@@ -54,6 +56,7 @@ class EditShell(object):
             self.offset_col = 0
         elif c == "\b":
             self.status = "changed"
+            self.exit_count = 0
             if len(self.cache[self.cursor_row]) == 0:
                 self.cache.pop(self.cursor_row)
                 self.cursor_move_left()
@@ -86,9 +89,15 @@ class EditShell(object):
             fp.close()
             self.status = "saved"
         elif c == "ES":
-            self.exit = True
+            if self.status == "saved":
+                self.exit = True
+            else:
+                self.exit_count += 1
+                if self.exit_count >= 3:
+                    self.exit = True
         else:
             self.status = "changed"
+            self.exit_count = 0
             self.cache[self.cursor_row] = self.cache[self.cursor_row][:self.cursor_col + self.offset_col] + c + self.cache[self.cursor_row][self.cursor_col + self.offset_col:]
             self.cursor_move_right()
         
@@ -258,4 +267,3 @@ def main(*args, **kwargs):
         yield Condition(sleep = 0, send_msgs = [
             Message({"output": str(reason)}, receiver = shell_id)
         ])
-        

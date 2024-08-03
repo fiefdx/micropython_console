@@ -41,4 +41,3 @@ def main(*args, **kwargs):
         yield Condition(sleep = 0, send_msgs = [
             Message({"output": str(sys.print_exception(e))}, receiver = shell_id)
         ])
-

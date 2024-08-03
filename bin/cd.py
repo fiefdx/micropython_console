@@ -12,4 +12,3 @@ def main(*args, **kwargs):
         uos.chdir(path)
         result = path
     return result
-

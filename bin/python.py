@@ -8,7 +8,7 @@ from shell import Shell
 from scheduler import Condition, Message
 
 class PyShell(Shell):
-    def __init__(self, display_size = (19, 9), cache_size = (-1, 30), history_length = 50, prompt_c = ">>>", scheduler = None, display_id = None, storage_id = None, history_file_path = "/sd/.python_history"):
+    def __init__(self, display_size = (19, 9), cache_size = (-1, 30), history_length = 50, prompt_c = ">>>", scheduler = None, display_id = None, storage_id = None, history_file_path = "/.python_history"):
         self.display_width = display_size[0]
         self.display_height = display_size[1]
         self.display_width_with_prompt = display_size[0] + len(prompt_c)
@@ -190,5 +190,3 @@ def main(*args, **kwargs):
         yield Condition(sleep = 0, send_msgs = [
             Message({"output": sys.print_exception(e)}, receiver = shell_id)
         ])
-
-

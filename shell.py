@@ -6,7 +6,7 @@ from common import exists, path_join, isfile, isdir
 
 
 class Shell(object):
-    def __init__(self, display_size = (20, 8), cache_size = (-1, 30), history_length = 100, prompt_c = ">", scheduler = None, display_id = None, storage_id = None, history_file_path = "/sd/.history", bin_path = "/bin"):
+    def __init__(self, display_size = (20, 8), cache_size = (-1, 30), history_length = 100, prompt_c = ">", scheduler = None, display_id = None, storage_id = None, history_file_path = "/.history", bin_path = "/bin"):
         self.display_width = display_size[0]
         self.display_height = display_size[1]
         self.display_width_with_prompt = display_size[0] + len(prompt_c)
@@ -36,7 +36,7 @@ class Shell(object):
         self.bin_path = bin_path
         self.load_history()
         from bin import ls, pwd, cd, mkdir, cp, rm, touch, echo, cat, ifconfig, connect, disconnect, reconnect, scan, read, help
-        from bin import top, python, clear, learn, reset, edit, editold, readpages, rename, bricks
+        from bin import top, python, clear, learn, reset, edit, editold, readpages, rename, bricks, tank, badapple, umount, mount
     
     def load_history(self):
         if exists(self.history_file_path):
@@ -78,7 +78,7 @@ class Shell(object):
         self.history_file.flush()
     
     def help_commands(self):
-        return "ls\npwd\ncd\nmkdir\nrm\ncp\ntouch\necho\ncat\nifconfig\nconnect\ndisconnect\nreconnect\nscan\nread\ntop\npython\nclear\nlearn\nreset\nedit\neditold\nrename\nbricks\nhelp"
+        return "ls\npwd\ncd\nmkdir\nrm\ncp\ntouch\necho\ncat\nifconfig\nconnect\ndisconnect\nreconnect\nscan\nread\ntop\npython\nclear\nlearn\nreset\nedit\neditold\nrename\nbricks\ntank\nbadapple\numount\nmount\nhelp"
         
     def get_display_frame(self):
         # return self.cache[-self.display_height:]
@@ -199,7 +199,7 @@ class Shell(object):
                         self.history.append(self.cache[-1][len(self.prompt_c):])
                         self.write_history(self.cache[-1][len(self.prompt_c):])
                         command = cmd.split(" ")[0].strip()
-                        if command in ("connect", "cat", "scan", "reconnect", "read", "help", "top", "python", "learn", "reset", "edit", "readpages", "editold", "cp", "rm", "bricks"):
+                        if command in ("connect", "cat", "scan", "reconnect", "read", "help", "top", "python", "learn", "reset", "edit", "readpages", "editold", "cp", "rm", "bricks", "tank", "badapple"):
                             self.scheduler.add_task(Task(self.run_coroutine, cmd, kwargs = {})) # execute cmd
                         else:
                             self.scheduler.add_task(Task(self.run, cmd, kwargs = {})) # execute cmd
@@ -225,7 +225,7 @@ class Shell(object):
                 self.cursor_move_left()
             elif c == "RT":
                 self.cursor_move_right()
-            elif c == "ES":
+            elif c in ("ES", "SAVE"):
                 pass
             else:
                 self.cache[-1] = self.cache[-1][:self.current_col] + c + self.cache[-1][self.current_col:]

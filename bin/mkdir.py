@@ -16,4 +16,3 @@ def main(*args, **kwargs):
             mkdirs(path)
             result = path
     return result
-

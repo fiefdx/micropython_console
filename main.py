@@ -200,7 +200,10 @@ def storage(task, name, scheduler = None, display_cs = None, sd_cs = None, spi =
                 #import bin
                 import_str = "from bin import %s" % module
                 exec(import_str)
-                output = bin.__dict__[module].main(*args[1:], shell_id = scheduler.shell_id)
+                if module in ("mount", "umount"):
+                    output, sd, vfs = bin.__dict__[module].main(*args[1:], shell_id = scheduler.shell_id, sd = sd, vfs = vfs, spi = spi, sd_cs = sd_cs)
+                else:
+                    output = bin.__dict__[module].main(*args[1:], shell_id = scheduler.shell_id)
                 yield Condition(sleep = 0, send_msgs = [
                     Message({"output": output}, receiver = scheduler.shell_id)
                 ])
