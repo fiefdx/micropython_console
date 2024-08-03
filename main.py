@@ -180,9 +180,14 @@ def display(task, name, display_cs = None, sd_cs = None, spi = None):
 def storage(task, name, scheduler = None, display_cs = None, sd_cs = None, spi = None):
     display_cs.high() # disable display
     spi.init(baudrate=13200000, polarity=0, phase=0)
-    sd = sdcard.SDCard(spi, sd_cs, baudrate=13200000)
-    vfs = uos.VfsFat(sd)
-    uos.mount(vfs, "/sd")
+    sd = None
+    vfs = None
+    try:
+        sd = sdcard.SDCard(spi, sd_cs, baudrate=13200000)
+        vfs = uos.VfsFat(sd)
+        uos.mount(vfs, "/sd")
+    except Exception as e:
+        print(e)
     while True:
         yield Condition(sleep = 0, wait_msg = True)
         msg = task.get_message()
@@ -374,5 +379,5 @@ if __name__ == "__main__":
         s.run()
     except Exception as e:
         import sys
-        print("main exit: %s" % sys.print_exception(e))
+        self.log("main exit: %s" % sys.print_exception(e))
     print("core0 exit")
