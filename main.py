@@ -119,12 +119,20 @@ def display(task, name, scheduler = None, display_cs = None, sd_cs = None, spi =
                 lcd.line(x * 6, y * 7, x * 6, y * 7 + 5, c)
                 #lcd.line(x * 6, y * 8, x * 6, y * 8 + 6, c)
                 cursor_previous = [x, y, c]
-        if scheduler.keyboard.mode == "DF":
-            lcd.line(127, 0, 127, 5, 0)
-        elif scheduler.keyboard.mode == "SH":
-            lcd.line(127, 0, 127, 2, 1)
-        elif scheduler.keyboard.mode == "CP":
-            lcd.line(127, 3, 127, 5, 1)
+        if "keyboard_mode" in msg.content:
+            keyboard_mode = msg.content["keyboard_mode"]
+            if keyboard_mode == "DF":
+                lcd.line(127, 0, 127, 5, 0)
+            elif keyboard_mode == "SH":
+                lcd.line(127, 0, 127, 2, 1)
+            elif keyboard_mode == "CP":
+                lcd.line(127, 3, 127, 5, 1)
+        #if scheduler.keyboard.mode == "DF":
+        #    lcd.line(127, 0, 127, 5, 0)
+        #elif scheduler.keyboard.mode == "SH":
+        #    lcd.line(127, 0, 127, 2, 1)
+        #elif scheduler.keyboard.mode == "CP":
+        #    lcd.line(127, 3, 127, 5, 1)
         if "bricks" in msg.content:
             refresh = True
             width = msg.content["bricks"]["width"]
@@ -272,6 +280,10 @@ def shell(task, name, scheduler = None, display_id = None, storage_id = None):
                 yield Condition(sleep = 0, send_msgs = [
                     Message({"frame": s.get_display_frame(), "cursor": s.get_cursor_position(1)}, receiver = display_id)
                 ])
+        if "keyboard_mode" in msg.content:
+            yield Condition(sleep = 0, send_msgs = [
+                Message({"keyboard_mode": msg.content["keyboard_mode"]}, receiver = display_id)
+            ])
         if "char" in msg.content:
             c = msg.content["char"]
             s.input_char(c)
@@ -334,6 +346,7 @@ def display_backlight(task, name, interval = 500, display_id = None):
 def keyboard_input(task, name, scheduler = None, interval = 50, shell_id = None):
     k = KeyBoard()
     scheduler.keyboard = k
+    keyboard_mode = k.mode
     while True:
         yield Condition(sleep = interval)
         key = k.scan()
@@ -342,6 +355,9 @@ def keyboard_input(task, name, scheduler = None, interval = 50, shell_id = None)
                 yield Condition(sleep = 0, send_msgs = [Message({"msg": key}, receiver = scheduler.shell.session_task_id)])
             else:
                 yield Condition(sleep = 0, send_msgs = [Message({"char": key}, receiver = shell_id)])
+        if keyboard_mode != k.mode:
+            keyboard_mode = k.mode
+            yield Condition(sleep = 0, send_msgs = [Message({"keyboard_mode": keyboard_mode}, receiver = shell_id)])
         k.clear()
 
 
