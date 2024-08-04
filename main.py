@@ -49,7 +49,7 @@ def monitor(task, name, scheduler = None, display_id = None):
         #yield Condition(sleep = 2000, send_msgs = [Message({"msg": monitor_msg}, receiver = display_id)])
 
 
-def display(task, name, display_cs = None, sd_cs = None, spi = None):
+def display(task, name, scheduler = None, display_cs = None, sd_cs = None, spi = None):
     sd_cs.high()
     spi.init(baudrate=8000000, polarity=1, phase=1)#under 20Mhz is OK
     lcd = ST7567(spi, a0=Pin(1), cs=display_cs, rst=Pin(0), elecvolt=0x34, regratio=0x02, invX=False, invY=True, invdisp=0)
@@ -119,6 +119,12 @@ def display(task, name, display_cs = None, sd_cs = None, spi = None):
                 lcd.line(x * 6, y * 7, x * 6, y * 7 + 5, c)
                 #lcd.line(x * 6, y * 8, x * 6, y * 8 + 6, c)
                 cursor_previous = [x, y, c]
+        if scheduler.keyboard.mode == "DF":
+            lcd.line(127, 0, 127, 5, 0)
+        elif scheduler.keyboard.mode == "SH":
+            lcd.line(127, 0, 127, 2, 1)
+        elif scheduler.keyboard.mode == "CP":
+            lcd.line(127, 3, 127, 5, 1)
         if "bricks" in msg.content:
             refresh = True
             width = msg.content["bricks"]["width"]
@@ -327,11 +333,11 @@ def display_backlight(task, name, interval = 500, display_id = None):
             
 def keyboard_input(task, name, scheduler = None, interval = 50, shell_id = None):
     k = KeyBoard()
+    scheduler.keyboard = k
     while True:
         yield Condition(sleep = interval)
         key = k.scan()
         if key != "":
-            # print("input: ", key)
             if scheduler.shell and scheduler.shell.session_task_id and scheduler.exists_task(scheduler.shell.session_task_id):
                 yield Condition(sleep = 0, send_msgs = [Message({"msg": key}, receiver = scheduler.shell.session_task_id)])
             else:
@@ -366,7 +372,7 @@ if __name__ == "__main__":
         display_cs = machine.Pin(5, machine.Pin.OUT)
         spi = SPI(0, baudrate=1000000, polarity=1, phase=1, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
         s = Scheluder(cpu = 0)
-        display_id = s.add_task(Task(display, "display", kwargs = {"display_cs": display_cs, "sd_cs": sd_cs, "spi": spi}))
+        display_id = s.add_task(Task(display, "display", kwargs = {"scheduler": s, "display_cs": display_cs, "sd_cs": sd_cs, "spi": spi}))
         storage_id = s.add_task(Task(storage, "storage", kwargs = {"scheduler": s, "display_cs": display_cs, "sd_cs": sd_cs, "spi": spi}))
         # storage_id = None
         shell_id = s.add_task(Task(shell, "shell", kwargs = {"scheduler": s, "display_id": display_id, "storage_id": storage_id}))
